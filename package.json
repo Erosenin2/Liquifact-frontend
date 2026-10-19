@@ -11,11 +11,26 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test tests/"
+    "test": "node --test tests/",
+    "test:ui": "vitest run"
   },
   "dependencies": {
+    "@stellar/freighter-api": "6.0.1",
+    "@stellar/stellar-sdk": "14.3.2",
     "next": "16.4.2",
     "react": "19.2.8",
     "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@vitejs/plugin-react": "5.2.0",
+    "jsdom": "26.1.0",
+    "vitest": "4.1.12"
+  },
+  "overrides": {
+    "@stellar/stellar-sdk": {
+      "toml": "4.2.0"
+    }
   }
 }

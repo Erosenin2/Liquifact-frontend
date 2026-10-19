@@ -204,3 +204,14 @@ pre { background: #0b1024; color: #e2e8f0; padding: 16px; border-radius: 12px; o
 .skeleton { background: linear-gradient(90deg, var(--surface-2), var(--border), var(--surface-2)); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; min-height: 180px; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } * { transition: none !important; } }
+
+/* On-chain funding: scoped contrast, focus and narrow-screen layout. */
+.invoice-detail .invoice-head { flex-wrap: wrap; }
+.funding-card { min-width: 0; }
+.funding-card .btn-primary { background: var(--brand); color: var(--brand-ink); }
+.funding-card .focus-ring:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+.funding-card .wallet-connection { margin: 12px 0; }
+.funding-card .wallet-connection p, .funding-card .notice p { margin: 6px 0; }
+.funding-card .funding-status:not(:empty) { margin-top: 14px; }
+.funding-card .tx-hash { display: block; overflow-wrap: anywhere; }
+.funding-card .field input { min-width: 0; }
