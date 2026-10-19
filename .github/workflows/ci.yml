@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, validation/1364-b48e]
   pull_request:
 
 concurrency:
