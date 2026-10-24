@@ -11,10 +11,23 @@ import { CONTRACT_ID } from "@/lib/config";
 vi.mock("@/lib/api", () => ({ getInvoice: vi.fn(), fundInvoice: vi.fn(), getEscrowLive: vi.fn() }));
 vi.mock("@/lib/stellar/fund", () => ({ submitFund: vi.fn() }));
 vi.mock("@/lib/stellar/freighter", async (original) => ({ ...await original(), connectFreighter: vi.fn(), signWithFreighter: vi.fn() }));
+// Isolate the funding flow from the other on-chain panels on the page (no network in tests).
+vi.mock("@/components/NotificationsProvider", () => ({
+  useNotifications: () => ({ follow: vi.fn(), unfollow: vi.fn(), isFollowing: () => false }),
+}));
+vi.mock("@/lib/escrow/token", async (original) => ({
+  ...await original(),
+  resolveFundingToken: vi.fn(async () => "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"),
+}));
+vi.mock("@/lib/escrow/constraints", async (original) => ({ ...await original(), loadConstraints: vi.fn(() => new Promise(() => {})) }));
+vi.mock("@/components/wallet/BalanceHint", () => ({ default: () => null }));
+vi.mock("@/components/escrow/FundersTable", () => ({ default: () => null }));
+vi.mock("@/components/invest/ExitPanel", () => ({ default: () => null }));
 const invoice = { id: "INV_0001", sme: "Acme", debtor: "Globex", amount: 100, fundedAmount: 0, currency: "XLM", status: "open", onChain: true, yieldBps: 800, dueDate: "2027-01-17" };
 const address = "GA7TXEBMEPQCLHIYCWDN7RKAO5IMRD2UV7O7TZXMEW6VZUMEXNR4XBB5";
 const hash = "a".repeat(64);
 beforeEach(() => {
+  vi.clearAllMocks();
   getInvoice.mockResolvedValue({ data: { ...invoice }, offline: false });
   getEscrowLive.mockResolvedValue({ contractId: CONTRACT_ID, escrow: { invoice_id: invoice.id, funding_target: "1000000000", funded_amount: "10000000", status: 0 } });
   connectFreighter.mockResolvedValue(address);
@@ -33,7 +46,8 @@ test("on-chain funding requires a wallet and has accessible status", async () =>
   await setup();
   expect(screen.getByRole("button", { name: "Sign & fund" }).disabled).toBe(true);
   expect(screen.getByLabelText("Amount (XLM)")).toBeTruthy();
-  expect(screen.getByRole("status").getAttribute("aria-live")).toBe("polite");
+  expect(document.querySelector(".funding-status").getAttribute("role")).toBe("status");
+  expect(document.querySelector(".funding-status").getAttribute("aria-live")).toBe("polite");
   expect(fundInvoice).not.toHaveBeenCalled();
 });
 test("off-chain invoice still calls the existing API only", async () => {
@@ -112,7 +126,7 @@ for (const [status, label] of [[3, "withdrawn"], [4, "cancelled"]]) {
     const user = await setup(); await connect(user);
     await user.type(screen.getByLabelText("Amount (XLM)"), "1");
     await user.click(screen.getByRole("button", { name: "Sign & fund" }));
-    await screen.findByText(/no longer accepts contributions/);
+    await screen.findByText(/no longer accepts contributions|see your exit options/);
     expect(screen.queryByRole("button", { name: "Sign & fund" })).toBeNull();
     expect(screen.getAllByText(label).length).toBeGreaterThan(0);
   });

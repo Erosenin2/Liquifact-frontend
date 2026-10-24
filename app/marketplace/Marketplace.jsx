@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import InvoiceCard from "@/components/InvoiceCard";
 import { listInvoices } from "@/lib/api";
+import { computeListMedians } from "@/lib/risk";
 import {
   getNetworkName,
   getPublicKey,
@@ -18,6 +19,7 @@ const FILTERS = [
   { v: "open", l: "Open" },
   { v: "funded", l: "Funded" },
   { v: "settled", l: "Settled" },
+  { v: "cancelled", l: "Cancelled" },
 ];
 
 /**
@@ -63,6 +65,8 @@ export default function Marketplace() {
     };
   }, [status]);
 
+  const medians = useMemo(() => computeListMedians(state.data), [state.data]);
+
   return (
     <section className="section">
       <div className="container">
@@ -107,7 +111,9 @@ export default function Marketplace() {
           </div>
         ) : (
           <div className="grid grid-3">
-            {state.data.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)}
+            {state.data.map((inv) => (
+              <InvoiceCard key={inv.id} invoice={inv} medians={medians} />
+            ))}
           </div>
         )}
       </div>
