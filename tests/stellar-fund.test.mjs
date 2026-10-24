@@ -44,7 +44,7 @@ test("fund XDR targets configured contract, investor and exact i128 amount", asy
   const { options } = fixture();
   const tx = await buildFundTx(options);
   const decoded = TransactionBuilder.fromXDR(tx.toXDR(), Networks.TESTNET);
-  const invoke = decoded.operations[0].func.invokeContract();
+  const invoke = decoded.toEnvelope().v1().tx().operations()[0].body().invokeHostFunctionOp().hostFunction().invokeContract();
   assert.equal(Address.fromScAddress(invoke.contractAddress()).toString(), CONTRACT_ID);
   assert.equal(invoke.functionName().toString(), "fund");
   assert.equal(scValToNative(invoke.args()[0]), investor);
