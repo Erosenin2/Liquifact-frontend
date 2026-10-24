@@ -44,12 +44,15 @@ test("fund XDR targets configured contract, investor and exact i128 amount", asy
   const { options } = fixture();
   const tx = await buildFundTx(options);
   const decoded = TransactionBuilder.fromXDR(tx.toXDR(), Networks.TESTNET);
-  const invoke = decoded.toEnvelope().v1().tx().operations()[0].body().invokeHostFunctionOp().hostFunction().invokeContract();
-  assert.equal(Address.fromScAddress(invoke.contractAddress()).toString(), CONTRACT_ID);
-  assert.equal(invoke.functionName().toString(), "fund");
-  assert.equal(scValToNative(invoke.args()[0]), investor);
-  assert.equal(invoke.args()[1].switch().name, "scvI128");
-  assert.equal(scValToNative(invoke.args()[1]), 125000000n);
+  // stellar-sdk 17 decodes XDR into plain typed objects (no accessor methods).
+  const func = decoded.operations[0].func;
+  assert.equal(func.type, "hostFunctionTypeInvokeContract");
+  const invoke = func.invokeContract;
+  assert.equal(Address.fromScAddress(invoke.contractAddress).toString(), CONTRACT_ID);
+  assert.equal(invoke.functionName.toString(), "fund");
+  assert.equal(scValToNative(invoke.args[0]), investor);
+  assert.equal(invoke.args[1].type, "scvI128");
+  assert.equal(scValToNative(invoke.args[1]), 125000000n);
 });
 test("builder rejects floats, zero, negative and overflow before RPC", async () => {
   for (const amountStroops of [1, 0n, -1n, MAX_I128 + 1n]) {
